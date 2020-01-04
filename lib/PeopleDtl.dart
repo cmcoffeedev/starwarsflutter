@@ -1,5 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'Person.dart';
+import 'package:starswarsflutter/Films.dart';
 
 
 class PeopleDtl extends StatefulWidget {
@@ -11,6 +17,46 @@ class PeopleDtl extends StatefulWidget {
   @override
   _PeopleDtlState createState() => _PeopleDtlState();
 }
+
+
+
+Future<List<Films>> fetchFilms(http.Client client, PeopleDtl widget) async {
+  final response =
+  await client.get('https://swapi.co/api/films/?format=json');
+
+  // Use the compute function to run parsePhotos in a separate isolate.
+
+  Map<String, dynamic> args = Map();
+  args["body"] = response.body;
+  args["widget"] = widget;
+
+//  return compute(parseFilms, response.body);
+  return compute(parseFilms, args);
+}
+
+// A function that converts a response body into a List<Photo>.
+List<Films> parseFilms(Map args) {
+  String responseBody = args["body"];
+  PeopleDtl widget = args["widget"];
+
+  final parsed = jsonDecode(responseBody);
+  var results = parsed['results'];
+
+  List<dynamic> films = widget.person.films;
+  List<dynamic> cleanResults = List<dynamic>();
+  for( var x in results){
+    var url = x['url'];
+    if(films.contains(url)){
+       cleanResults.add(x);
+    }
+
+  }
+
+
+  return cleanResults.map<Films>((json) => Films.fromJson(json)).toList();
+}
+
+
 
 class _PeopleDtlState extends State<PeopleDtl> {
 
@@ -60,9 +106,45 @@ class _PeopleDtlState extends State<PeopleDtl> {
               Text(
                 "Gender: ${widget.person.gender}",
               ),
+              FutureBuilder<List<Films>>(
+                future: fetchFilms(http.Client(), widget),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) print(snapshot.error);
+
+                  return snapshot.hasData
+                      ? FilmsList(films: snapshot.data)
+                      : Center(child: CircularProgressIndicator());
+                },
+              ),
+
             ],
           ),
         ),
       );
+  }
+}
+
+class FilmsList extends StatelessWidget {
+  final List<Films> films;
+
+  FilmsList({Key key, this.films}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400.0,
+      child: ListView.builder(
+        itemCount: films.length,
+        itemBuilder: (context, index) {
+          var title = films[index].title;
+          var release = films[index].releaseDate;
+          return ListTile(
+            title: Text(title),
+            subtitle: Text(release),
+
+          );
+        },
+      ),
+    );
   }
 }
