@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'Person.dart';
 import 'package:starswarsflutter/Films.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 class PeopleDtl extends StatefulWidget {
@@ -71,6 +72,23 @@ class _PeopleDtlState extends State<PeopleDtl> {
 		"gender": "male",
  */
 
+  _launchURL(PeopleDtl widget) async {
+//    const url = 'mailto:smith@example.org?subject=News&body=New%20plugin';
+    var name = widget.person.name;
+    var birth_year = widget.person.birthDate;
+    var body = 'Their name is $name\n.Birth year is $birth_year.';
+    var subject = '$name info.';
+    var encodedBody = Uri.encodeFull(body);
+    var encodedSubject = Uri.encodeFull(subject);
+
+    var url = 'mailto:?subject=$encodedSubject&body=$encodedBody';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 //    return Container(color: Colors.blue,);
@@ -82,6 +100,15 @@ class _PeopleDtlState extends State<PeopleDtl> {
           padding: const EdgeInsets.all(8.0),
           child: ListView(
             children: <Widget>[
+              RaisedButton(
+               child: Text("Share ${widget.person.name}'s info"),
+                onPressed: (){
+
+
+                  _launchURL(widget);
+
+                },
+              ),
               Text(
                 "Name: ${widget.person.name}",
               ),

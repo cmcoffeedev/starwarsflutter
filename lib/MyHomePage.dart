@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:share/share.dart';
 import 'Person.dart';
 import 'PeopleDtl.dart';
 
@@ -71,15 +72,27 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: FutureBuilder<List<Person>>(
-        future: fetchPeople(http.Client()),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) print(snapshot.error);
+      body: Column(
+        children: <Widget>[
+          RaisedButton(
+            child: Text("Share"),
+            onPressed: (){
+             Share.share("Check out my cool Star Wars app!") ;
+            },
+          ),
+          Expanded(
+            child: FutureBuilder<List<Person>>(
+              future: fetchPeople(http.Client()),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) print(snapshot.error);
 
-          return snapshot.hasData
-              ? PeopleList(people: snapshot.data)
-              : Center(child: CircularProgressIndicator());
-        },
+                return snapshot.hasData
+                    ? PeopleList(people: snapshot.data)
+                    : Center(child: CircularProgressIndicator());
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
