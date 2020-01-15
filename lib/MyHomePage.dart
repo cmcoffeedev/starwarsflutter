@@ -9,8 +9,7 @@ import 'Person.dart';
 import 'PeopleDtl.dart';
 
 Future<List<Person>> fetchPeople(http.Client client) async {
-  final response =
-  await client.get('https://swapi.co/api/people/?format=json');
+  final response = await client.get('https://swapi.co/api/people/?format=json');
 
 //  var data = await json.decode(response.body);
 
@@ -19,7 +18,6 @@ Future<List<Person>> fetchPeople(http.Client client) async {
   // Use the compute function to run parsePhotos in a separate isolate.
   return compute(parsePeople, response.body);
 }
-
 
 List<Person> parsePeople(String responseBody) {
   final parsed = jsonDecode(responseBody);
@@ -47,16 +45,51 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  TextEditingController searchController = TextEditingController();
+  List<Person> initialData = List<Person>();
+  List<Person> shownList = List<Person>();
 
-  void _incrementCounter() {
+  void queryPeople(String queryString) {
+    List<Person> copyList = List<Person>();
+
+    print("queryString = $queryString");
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+//      if (queryString.isNotEmpty) {
+//        for (var x in initialData) {
+//          var name = x.name;
+//          if (name.toLowerCase().contains(queryString.toLowerCase())) {
+//            copyList.add(x);
+//          }
+//        }
+//
+//        shownList = copyList;
+//      } else {
+//        shownList = initialData;
+//      }
+
+    shownList = initialData.where((string){
+
+      if(string.name.toLowerCase().contains(queryString.toLowerCase())){
+       return true;
+      }
+      else return false;
+
+    }).toList();
+
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    fetchPeople(http.Client()).then((value) {
+      setState(() {
+        initialData = value;
+        shownList = value;
+      });
     });
   }
 
@@ -74,22 +107,26 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: <Widget>[
+          TextField(controller: searchController, onChanged: queryPeople),
           RaisedButton(
             child: Text("Share"),
-            onPressed: (){
-             Share.share("Check out my cool Star Wars app!") ;
+            onPressed: () {
+              Share.share("Check out my cool Star Wars app!");
             },
           ),
           Expanded(
-            child: FutureBuilder<List<Person>>(
-              future: fetchPeople(http.Client()),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) print(snapshot.error);
-
-                return snapshot.hasData
-                    ? PeopleList(people: snapshot.data)
-                    : Center(child: CircularProgressIndicator());
-              },
+//            child: FutureBuilder<List<Person>>(
+//              future: fetchPeople(http.Client()),
+//              builder: (context, snapshot) {
+//                if (snapshot.hasError) print(snapshot.error);
+//
+//                return snapshot.hasData
+//                    ? PeopleList(people: snapshot.data)
+//                    : Center(child: CircularProgressIndicator());
+//              },
+//            ),
+            child: PeopleList(
+              people: shownList,
             ),
           ),
         ],
@@ -98,33 +135,32 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-
 class PeopleList extends StatelessWidget {
   final List<Person> people;
+
 //  final dynamic people;
 
   PeopleList({Key key, this.people}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-
-
     return ListView.builder(
       itemCount: people.length,
       itemBuilder: (context, index) {
         var person = people[index];
         var name = person.name;
         var birthYear = person.birthDate;
-      return ListTile(
-        title: Text(name),
-        subtitle: Text(birthYear),
-        onTap: (){
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => PeopleDtl(person:person)),
-          );
-        },
-      );
+        return ListTile(
+          title: Text(name),
+          subtitle: Text(birthYear),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PeopleDtl(person: person)),
+            );
+          },
+        );
       },
     );
   }
