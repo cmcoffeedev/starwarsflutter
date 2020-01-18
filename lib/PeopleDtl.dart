@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +13,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 class PeopleDtl extends StatefulWidget {
 
-  PeopleDtl({Key key, this.person}) : super(key: key);
+  PeopleDtl({Key key, this.person, this.id}) : super(key: key);
 
   final Person person;
+  final int id;
 
   @override
   _PeopleDtlState createState() => _PeopleDtlState();
@@ -61,16 +64,13 @@ List<Films> parseFilms(Map args) {
 
 class _PeopleDtlState extends State<PeopleDtl> {
 
-/*
-"name": "Luke Skywalker",
-		"height": "172",
-		"mass": "77",
-		"hair_color": "blond",
-		"skin_color": "fair",
-		"eye_color": "blue",
-		"birth_year": "19BBY",
-		"gender": "male",
- */
+
+
+
+  var database;
+
+
+
 
   _launchURL(PeopleDtl widget) async {
 //    const url = 'mailto:smith@example.org?subject=News&body=New%20plugin';
@@ -89,6 +89,65 @@ class _PeopleDtlState extends State<PeopleDtl> {
     }
   }
 
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    initDb();
+
+  }
+
+  /*
+"name": "Luke Skywalker",
+		"height": "172",
+		"mass": "77",
+		"hair_color": "blond",
+		"skin_color": "fair",
+		"eye_color": "blue",
+		"birth_year": "19BBY",
+		"gender": "male",
+ */
+
+  Future initDb() async {
+
+    database = openDatabase(
+      // Set the path to the database. Note: Using the `join` function from the
+      // `path` package is best practice to ensure the path is correctly
+      // constructed for each platform.
+      join(await getDatabasesPath(), 'person_database.db'),
+      // When the database is first created, create a table to store dogs.
+      onCreate: (db, version) {
+        return db.execute(
+          "CREATE TABLE person(id INTEGER PRIMARY KEY,  name TEXT, height TEXT, mass TEXT, hair_color TEXT, skin_color TEXT, eye_color TEXT, birth_year TEXT, gender TEXT)",
+        );
+      },
+      // Set the version. This executes the onCreate function and provides a
+      // path to perform database upgrades and downgrades.
+      version: 1,
+    );
+
+
+  }
+
+
+  Future<void> insertDog(Person person) async {
+    // Get a reference to the database.
+    final Database db = await database;
+
+    // Insert the Dog into the correct table. Also specify the
+    // `conflictAlgorithm`. In this case, if the same dog is inserted
+    // multiple times, it replaces the previous data.
+    await db.insert(
+      'person',
+      person.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
 //    return Container(color: Colors.blue,);
@@ -100,6 +159,16 @@ class _PeopleDtlState extends State<PeopleDtl> {
           padding: const EdgeInsets.all(8.0),
           child: ListView(
             children: <Widget>[
+              RaisedButton(
+                color: Colors.black,
+                child: Text("Add To Favorites", style: TextStyle(color: Colors.yellow),),
+                onPressed: (){
+
+                  insertDog(widget.person);
+
+
+                },
+              ),
               RaisedButton(
                child: Text("Share ${widget.person.name}'s info"),
                 onPressed: (){

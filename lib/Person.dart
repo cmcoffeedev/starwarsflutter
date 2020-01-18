@@ -7,6 +7,7 @@ class Person {
   final String eyeColor;
   final String gender;
   final String height;
+  int id;
   final List<dynamic> films;
 
 
@@ -21,7 +22,7 @@ class Person {
 		"gender": "male",
  */
 
-  Person({ this.name, this.birthDate, this.mass, this.hairColor, this.skinColor, this.eyeColor, this.gender, this.height, this.films});
+  Person({ this.name, this.birthDate, this.mass, this.hairColor, this.skinColor, this.eyeColor, this.gender, this.height, this.films, this.id});
 
   factory Person.fromJson(Map<String, dynamic> json) {
     return Person(
@@ -35,5 +36,21 @@ class Person {
       height: json['height'] as String,
       films: json['films'] as List<dynamic>,
     );
+  }
+
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'mass': mass,
+      'hair_color': hairColor,
+      'skin_color': skinColor,
+      'eye_color': eyeColor,
+      'birth_year': birthDate,
+      'height': height,
+      'gender': gender
+//      'films': skinColor,
+    };
   }
 }

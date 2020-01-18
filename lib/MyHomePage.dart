@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:share/share.dart';
+import 'package:starswarsflutter/Favorites.dart';
 import 'Person.dart';
 import 'PeopleDtl.dart';
 
@@ -114,6 +115,16 @@ class _MyHomePageState extends State<MyHomePage> {
               Share.share("Check out my cool Star Wars app!");
             },
           ),
+          RaisedButton(
+            child: Text("Favorites"),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => Favorites()),
+              );
+            },
+          ),
           Expanded(
 //            child: FutureBuilder<List<Person>>(
 //              future: fetchPeople(http.Client()),
@@ -154,10 +165,11 @@ class PeopleList extends StatelessWidget {
           title: Text(name),
           subtitle: Text(birthYear),
           onTap: () {
+            person.id = index;
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => PeopleDtl(person: person)),
+                  builder: (context) => PeopleDtl(person: person, id: index)),
             );
           },
         );
